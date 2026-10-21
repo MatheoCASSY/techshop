@@ -118,6 +118,19 @@ const PRODUCTS: Record<CategorySlug, SeedProduct[]> = {
   ],
 };
 
+// Visuel neutre par catégorie (aucune photo libre de droits à gérer)
+const CATEGORY_COLORS: Record<CategorySlug, string> = {
+  laptops: '4f46e5',
+  smartphones: '0891b2',
+  audio: 'db2777',
+  peripherals: '059669',
+  components: 'd97706',
+  accessories: '7c3aed',
+};
+
+const productImageUrl = (name: string, category: CategorySlug) =>
+  `https://placehold.co/640x480/${CATEGORY_COLORS[category]}/ffffff/png?text=${encodeURIComponent(name)}`;
+
 const slugify = (value: string) =>
   value
     .normalize('NFD')
@@ -199,7 +212,7 @@ async function main() {
           description,
           priceCents: priceEuros * 100,
           stock: faker.number.int({ min: 0, max: 60 }),
-          imageUrl: `https://picsum.photos/seed/${productSlug}/640/480`,
+          imageUrl: productImageUrl(productName, slug),
           categoryId: category.id,
           createdAt: faker.date.recent({ days: 120 }),
         },
