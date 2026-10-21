@@ -9,6 +9,7 @@ services:
       CORS_ORIGIN: http://localhost:8080
       # Obligatoire : à définir dans un fichier .env à la racine (voir .env.example)
       SEED_ADMIN_PASSWORD: ${SEED_ADMIN_PASSWORD:?définir SEED_ADMIN_PASSWORD dans .env}
+      JWT_SECRET: ${JWT_SECRET:?définir JWT_SECRET dans .env}
     volumes:
       - db-data:/data
     restart: unless-stopped
