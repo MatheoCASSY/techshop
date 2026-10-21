@@ -1,0 +1,28 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: file:/data/techshop.db
+      CORS_ORIGIN: http://localhost:8080
+      # Obligatoire : à définir dans un fichier .env à la racine (voir .env.example)
+      SEED_ADMIN_PASSWORD: ${SEED_ADMIN_PASSWORD:?définir SEED_ADMIN_PASSWORD dans .env}
+    volumes:
+      - db-data:/data
+    restart: unless-stopped
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    ports:
+      - '8080:80'
+    depends_on:
+      api:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  db-data:
