@@ -11,7 +11,9 @@ FROM base AS build
 COPY package.json package-lock.json ./
 COPY packages/shared/package.json packages/shared/
 COPY apps/api/package.json apps/api/
-RUN npm ci -w @techshop/shared -w @techshop/api --include-workspace-root=false
+# Le hook « prepare » (husky) ne sert qu'au poste de dev : on le retire de l'image
+RUN npm pkg delete scripts.prepare \
+  && npm ci -w @techshop/shared -w @techshop/api --include-workspace-root=false
 COPY tsconfig.base.json ./
 COPY packages/shared packages/shared
 COPY apps/api apps/api
@@ -22,7 +24,8 @@ ENV NODE_ENV=production
 COPY package.json package-lock.json ./
 COPY packages/shared/package.json packages/shared/
 COPY apps/api/package.json apps/api/
-RUN npm ci --omit=dev -w @techshop/shared -w @techshop/api --include-workspace-root=false \
+RUN npm pkg delete scripts.prepare \
+  && npm ci --omit=dev -w @techshop/shared -w @techshop/api --include-workspace-root=false \
   && npm cache clean --force
 COPY --from=build /app/packages/shared/dist packages/shared/dist
 COPY --from=build /app/apps/api/dist apps/api/dist
