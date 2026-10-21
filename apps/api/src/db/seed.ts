@@ -1,6 +1,6 @@
 import { fakerFR as faker } from '@faker-js/faker';
 import { type Product, PrismaClient } from '@prisma/client';
-import { type CategorySlug, ORDER_STATUSES } from '@techshop/shared';
+import { type CategorySlug, ORDER_STATUSES, slugify } from '@techshop/shared';
 import { hashPassword } from '../lib/password.js';
 import { refreshProductRating } from '../lib/ratings.js';
 
@@ -130,14 +130,6 @@ const CATEGORY_COLORS: Record<CategorySlug, string> = {
 
 const productImageUrl = (name: string, category: CategorySlug) =>
   `https://placehold.co/640x480/${CATEGORY_COLORS[category]}/ffffff/png?text=${encodeURIComponent(name)}`;
-
-const slugify = (value: string) =>
-  value
-    .normalize('NFD')
-    .replace(/[̀-ͯ]/g, '')
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/(^-|-$)/g, '');
 
 async function main() {
   const adminPassword = process.env.SEED_ADMIN_PASSWORD;
