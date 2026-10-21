@@ -63,3 +63,26 @@ export type Paginated<T> = {
   total: number;
   totalPages: number;
 };
+
+/** Création / modification d'un produit dans le back-office. */
+export const productInputSchema = z.object({
+  name: z.string().trim().min(2).max(120),
+  slug: z
+    .string()
+    .trim()
+    .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, 'Slug invalide (minuscules, chiffres et tirets)')
+    .max(140),
+  description: z.string().trim().max(2000),
+  priceCents: priceCentsSchema.max(10_000_000),
+  stock: z.number().int().nonnegative().max(100_000),
+  imageUrl: z.url({ protocol: /^https?$/ }),
+  category: categorySlugSchema,
+});
+export type ProductInput = z.infer<typeof productInputSchema>;
+
+export const categorySchema = z.object({
+  slug: categorySlugSchema,
+  name: z.string(),
+  productCount: z.number().int(),
+});
+export type Category = z.infer<typeof categorySchema>;
