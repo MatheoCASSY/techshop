@@ -1,18 +1,52 @@
-import { ApiStatus } from './components/ApiStatus';
+import { Route, Routes } from 'react-router';
+import { Layout } from './components/Layout';
+import { RequireAuth } from './components/RequireAuth';
+import { AccountPage } from './pages/AccountPage';
+import { LoginPage, RegisterPage } from './pages/AuthPages';
+import { CartPage } from './pages/CartPage';
+import { CatalogPage } from './pages/CatalogPage';
+import { CheckoutPage } from './pages/CheckoutPage';
+import { HomePage } from './pages/HomePage';
+import { NotFoundPage } from './pages/NotFoundPage';
+import { OrderPage } from './pages/OrderPage';
+import { ProductPage } from './pages/ProductPage';
 
 export function App() {
   return (
-    <div className="min-h-screen bg-gray-50 text-gray-900">
-      <header className="border-b border-gray-200 bg-white">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4">
-          <span className="text-xl font-bold tracking-tight text-indigo-600">techshop</span>
-          <ApiStatus />
-        </div>
-      </header>
-      <main className="mx-auto max-w-6xl px-4 py-16 text-center">
-        <h1 className="text-3xl font-bold">Bienvenue sur techshop</h1>
-        <p className="mt-3 text-gray-600">Le catalogue arrive bientôt.</p>
-      </main>
-    </div>
+    <Routes>
+      <Route element={<Layout />}>
+        <Route index element={<HomePage />} />
+        <Route path="catalogue" element={<CatalogPage />} />
+        <Route path="produits/:slug" element={<ProductPage />} />
+        <Route path="panier" element={<CartPage />} />
+        <Route path="connexion" element={<LoginPage />} />
+        <Route path="inscription" element={<RegisterPage />} />
+        <Route
+          path="commande"
+          element={
+            <RequireAuth>
+              <CheckoutPage />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="compte"
+          element={
+            <RequireAuth>
+              <AccountPage />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="compte/commandes/:id"
+          element={
+            <RequireAuth>
+              <OrderPage />
+            </RequireAuth>
+          }
+        />
+        <Route path="*" element={<NotFoundPage />} />
+      </Route>
+    </Routes>
   );
 }
