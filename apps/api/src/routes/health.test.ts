@@ -1,15 +1,13 @@
-import { PrismaClient } from '@prisma/client';
+import type { PrismaClient } from '@prisma/client';
 import { afterAll, describe, expect, it, vi } from 'vitest';
 import { buildApp } from '../app.js';
-
-const prisma = new PrismaClient();
-const env = { CORS_ORIGIN: 'http://localhost:5173' };
+import { buildTestApp, prisma, testEnv } from '../../test/helpers.js';
 
 afterAll(() => prisma.$disconnect());
 
 describe('GET /api/health', () => {
   it('répond ok quand la base est joignable', async () => {
-    const app = await buildApp({ env, prisma });
+    const app = await buildTestApp();
     const response = await app.inject({ method: 'GET', url: '/api/health' });
 
     expect(response.statusCode).toBe(200);
@@ -21,7 +19,7 @@ describe('GET /api/health', () => {
     const brokenPrisma = {
       $queryRaw: vi.fn().mockRejectedValue(new Error('connexion refusée')),
     } as unknown as PrismaClient;
-    const app = await buildApp({ env, prisma: brokenPrisma });
+    const app = await buildApp({ env: testEnv, prisma: brokenPrisma });
     const response = await app.inject({ method: 'GET', url: '/api/health' });
 
     expect(response.statusCode).toBe(503);
@@ -30,10 +28,19 @@ describe('GET /api/health', () => {
   });
 
   it('ajoute les en-têtes de sécurité (helmet)', async () => {
-    const app = await buildApp({ env, prisma });
+    const app = await buildTestApp();
     const response = await app.inject({ method: 'GET', url: '/api/health' });
 
     expect(response.headers['x-content-type-options']).toBe('nosniff');
+    await app.close();
+  });
+
+  it('renvoie un 404 JSON pour une route inconnue', async () => {
+    const app = await buildTestApp();
+    const response = await app.inject({ method: 'GET', url: '/api/nexiste-pas' });
+
+    expect(response.statusCode).toBe(404);
+    expect(response.json()).toEqual({ error: 'Route introuvable' });
     await app.close();
   });
 });
