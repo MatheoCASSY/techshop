@@ -155,6 +155,21 @@ async function main() {
     },
   });
 
+  // Compte développeur (admin) : uniquement hors production et si les variables sont définies
+  const devEmail = process.env.DEV_USER_EMAIL;
+  const devPassword = process.env.DEV_USER_PASSWORD;
+  if (process.env.NODE_ENV !== 'production' && devEmail && devPassword) {
+    await prisma.user.create({
+      data: {
+        email: devEmail.trim().toLowerCase(),
+        name: 'Développeur',
+        role: 'admin',
+        passwordHash: await hashPassword(devPassword),
+      },
+    });
+    console.log(`Compte de dev créé : ${devEmail}`);
+  }
+
   // Clients fictifs, auteurs des avis et des commandes de démo.
   // Le premier a un email fixe pour pouvoir se connecter (mot de passe de démo, documenté).
   const customerHash = await hashPassword(DEMO_CUSTOMER_PASSWORD);
@@ -240,7 +255,7 @@ async function main() {
   }
 
   console.log(
-    `Seed terminé : ${productCount} produits, ${customers.length + 1} utilisateurs, ${orderCount} commandes.`,
+    `Seed terminé : ${productCount} produits, ${await prisma.user.count()} utilisateurs, ${orderCount} commandes.`,
   );
 }
 
