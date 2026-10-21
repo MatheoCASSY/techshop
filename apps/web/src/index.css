@@ -1,1 +1,14 @@
 @import 'tailwindcss';
+
+/* Thème sombre piloté par la classe .dark sur <html> (choix utilisateur ou système) */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Respecte la préférence « réduire les animations » */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

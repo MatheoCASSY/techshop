@@ -118,6 +118,19 @@ const PRODUCTS: Record<CategorySlug, SeedProduct[]> = {
   ],
 };
 
+// Visuel neutre par catégorie (aucune photo libre de droits à gérer)
+const CATEGORY_COLORS: Record<CategorySlug, string> = {
+  laptops: '4f46e5',
+  smartphones: '0891b2',
+  audio: 'db2777',
+  peripherals: '059669',
+  components: 'd97706',
+  accessories: '7c3aed',
+};
+
+const productImageUrl = (name: string, category: CategorySlug) =>
+  `https://placehold.co/640x480/${CATEGORY_COLORS[category]}/ffffff/png?text=${encodeURIComponent(name)}`;
+
 const slugify = (value: string) =>
   value
     .normalize('NFD')
@@ -155,6 +168,21 @@ async function main() {
     },
   });
 
+  // Compte développeur (admin) : uniquement hors production et si les variables sont définies
+  const devEmail = process.env.DEV_USER_EMAIL;
+  const devPassword = process.env.DEV_USER_PASSWORD;
+  if (process.env.NODE_ENV !== 'production' && devEmail && devPassword) {
+    await prisma.user.create({
+      data: {
+        email: devEmail.trim().toLowerCase(),
+        name: 'Développeur',
+        role: 'admin',
+        passwordHash: await hashPassword(devPassword),
+      },
+    });
+    console.log(`Compte de dev créé : ${devEmail}`);
+  }
+
   // Clients fictifs, auteurs des avis et des commandes de démo.
   // Le premier a un email fixe pour pouvoir se connecter (mot de passe de démo, documenté).
   const customerHash = await hashPassword(DEMO_CUSTOMER_PASSWORD);
@@ -184,7 +212,7 @@ async function main() {
           description,
           priceCents: priceEuros * 100,
           stock: faker.number.int({ min: 0, max: 60 }),
-          imageUrl: `https://picsum.photos/seed/${productSlug}/640/480`,
+          imageUrl: productImageUrl(productName, slug),
           categoryId: category.id,
           createdAt: faker.date.recent({ days: 120 }),
         },
@@ -240,7 +268,7 @@ async function main() {
   }
 
   console.log(
-    `Seed terminé : ${productCount} produits, ${customers.length + 1} utilisateurs, ${orderCount} commandes.`,
+    `Seed terminé : ${productCount} produits, ${await prisma.user.count()} utilisateurs, ${orderCount} commandes.`,
   );
 }
 
