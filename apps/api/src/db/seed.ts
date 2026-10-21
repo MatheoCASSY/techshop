@@ -1,12 +1,40 @@
 import { fakerFR as faker } from '@faker-js/faker';
-import { PrismaClient } from '@prisma/client';
-import type { CategorySlug } from '@techshop/shared';
+import { type Product, PrismaClient } from '@prisma/client';
+import { type CategorySlug, ORDER_STATUSES } from '@techshop/shared';
 import { hashPassword } from '../lib/password.js';
+import { refreshProductRating } from '../lib/ratings.js';
 
 const prisma = new PrismaClient();
 
 // Graine fixe : le seed produit toujours les mêmes données (démos et tests reproductibles)
 faker.seed(42);
+
+// Compte client de démo (données fictives, mot de passe public documenté dans le README)
+const DEMO_CUSTOMER_EMAIL = 'client@techshop.local';
+const DEMO_CUSTOMER_PASSWORD = 'demo-password';
+
+const REVIEW_COMMENTS: Record<number, string[]> = {
+  2: [
+    'Déçu, la qualité de fabrication laisse à désirer.',
+    'Fonctionne, mais beaucoup trop cher pour ce que c’est.',
+    'Livraison rapide, mais le produit ne correspond pas à la description.',
+  ],
+  3: [
+    'Correct sans plus, fait le travail.',
+    'Bon produit, mais l’autonomie est en dessous de mes attentes.',
+    'Rapport qualité-prix moyen, à acheter en promotion.',
+  ],
+  4: [
+    'Très bon produit, je recommande.',
+    'Solide et bien fini, seul le logiciel fourni est perfectible.',
+    'Conforme à mes attentes, installation en deux minutes.',
+  ],
+  5: [
+    'Excellent, je ne m’en sépare plus !',
+    'Parfait, la meilleure affaire de l’année.',
+    'Qualité au rendez-vous, livraison en 24 h. Bravo.',
+  ],
+};
 
 const CATEGORIES: Record<CategorySlug, string> = {
   laptops: 'Ordinateurs portables',
@@ -127,13 +155,14 @@ async function main() {
     },
   });
 
-  // Clients fictifs, auteurs des avis
-  const customerHash = await hashPassword('demo-password');
+  // Clients fictifs, auteurs des avis et des commandes de démo.
+  // Le premier a un email fixe pour pouvoir se connecter (mot de passe de démo, documenté).
+  const customerHash = await hashPassword(DEMO_CUSTOMER_PASSWORD);
   const customers = await Promise.all(
-    Array.from({ length: 8 }, () =>
+    Array.from({ length: 8 }, (_, i) =>
       prisma.user.create({
         data: {
-          email: faker.internet.email().toLowerCase(),
+          email: i === 0 ? DEMO_CUSTOMER_EMAIL : faker.internet.email().toLowerCase(),
           name: faker.person.fullName(),
           passwordHash: customerHash,
         },
@@ -142,6 +171,7 @@ async function main() {
   );
 
   let productCount = 0;
+  const products: Product[] = [];
   for (const [slug, name] of Object.entries(CATEGORIES) as [CategorySlug, string][]) {
     const category = await prisma.category.create({ data: { slug, name } });
 
@@ -163,19 +193,55 @@ async function main() {
 
       const reviewers = faker.helpers.arrayElements(customers, { min: 0, max: 5 });
       for (const reviewer of reviewers) {
+        const rating = faker.number.int({ min: 2, max: 5 });
         await prisma.review.create({
           data: {
-            rating: faker.number.int({ min: 2, max: 5 }),
-            comment: faker.lorem.sentences({ min: 1, max: 3 }),
+            rating,
+            comment: faker.helpers.arrayElement(REVIEW_COMMENTS[rating] ?? []),
             userId: reviewer.id,
             productId: product.id,
           },
         });
       }
+      await refreshProductRating(prisma, product.id);
+      products.push(product);
     }
   }
 
-  console.log(`Seed terminé : ${productCount} produits, ${customers.length + 1} utilisateurs.`);
+  // Commandes de démo pour alimenter le back-office (le stock n'est pas décrémenté ici)
+  let orderCount = 0;
+  for (const customer of customers) {
+    for (let i = 0; i < faker.number.int({ min: 0, max: 2 }); i++) {
+      const lines = faker.helpers
+        .arrayElements(products, { min: 1, max: 3 })
+        .map((product) => ({ product, quantity: faker.number.int({ min: 1, max: 2 }) }));
+      await prisma.order.create({
+        data: {
+          userId: customer.id,
+          status: faker.helpers.arrayElement(ORDER_STATUSES),
+          totalCents: lines.reduce((sum, l) => sum + l.product.priceCents * l.quantity, 0),
+          shippingName: customer.name,
+          shippingAddress: faker.location.streetAddress(),
+          shippingCity: faker.location.city(),
+          shippingZip: faker.location.zipCode('#####'),
+          shippingCountry: 'France',
+          createdAt: faker.date.recent({ days: 60 }),
+          items: {
+            create: lines.map(({ product, quantity }) => ({
+              productId: product.id,
+              quantity,
+              unitPriceCents: product.priceCents,
+            })),
+          },
+        },
+      });
+      orderCount++;
+    }
+  }
+
+  console.log(
+    `Seed terminé : ${productCount} produits, ${customers.length + 1} utilisateurs, ${orderCount} commandes.`,
+  );
 }
 
 main()

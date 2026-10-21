@@ -36,6 +36,9 @@ model Product {
   priceCents  Int
   stock       Int
   imageUrl    String
+  // Dénormalisé (mis à jour à chaque avis) pour pouvoir trier et filtrer par note en SQL
+  ratingAvg   Float?
+  reviewCount Int         @default(0)
   categoryId  String
   category    Category    @relation(fields: [categoryId], references: [id])
   reviews     Review[]
@@ -45,6 +48,7 @@ model Product {
 
   @@index([categoryId])
   @@index([priceCents])
+  @@index([ratingAvg])
 }
 
 model Review {
