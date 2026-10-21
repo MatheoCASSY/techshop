@@ -165,7 +165,9 @@ export function CatalogPage() {
           {isPending && <Spinner />}
           {isError && <ErrorMessage onRetry={() => void refetch()} />}
           {data && data.items.length === 0 && (
-            <p className="py-12 text-center text-gray-500">{t('catalog.empty')}</p>
+            <p className="py-12 text-center text-gray-500 dark:text-gray-400">
+              {t('catalog.empty')}
+            </p>
           )}
           {data && data.items.length > 0 && (
             <div className={isPlaceholderData ? 'opacity-60 transition-opacity' : undefined}>
