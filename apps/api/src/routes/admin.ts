@@ -1,5 +1,7 @@
 import {
+  type AdminStats,
   canTransition,
+  LOW_STOCK_THRESHOLD,
   type Order,
   orderStatusSchema,
   orderStatusUpdateSchema,
@@ -16,18 +18,8 @@ import { orderInclude, toOrder, toProduct } from '../lib/serializers.js';
 const idParamsSchema = z.object({ id: z.string().min(1).max(40) });
 const ordersQuerySchema = z.object({ status: orderStatusSchema.optional() });
 
-const LOW_STOCK_THRESHOLD = 5;
 // Statuts qui comptent dans le chiffre d'affaires
 const REVENUE_STATUSES: OrderStatus[] = ['paid', 'shipped', 'delivered'];
-
-export interface AdminStats {
-  revenueCents: number;
-  orderCount: number;
-  customerCount: number;
-  productCount: number;
-  lowStock: Pick<Product, 'id' | 'name' | 'slug' | 'stock'>[];
-  ordersByStatus: Record<OrderStatus, number>;
-}
 
 export const adminRoutes: FastifyPluginAsync = async (app) => {
   // Toutes les routes de ce plugin exigent le rôle admin

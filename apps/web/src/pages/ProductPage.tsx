@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { type ReviewInput, reviewInputSchema } from '@techshop/shared';
+import { LOW_STOCK_THRESHOLD, type ReviewInput, reviewInputSchema } from '@techshop/shared';
 import { Check } from 'lucide-react';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -15,8 +15,6 @@ import { useCreateReview, useMe, useProduct, useReviews } from '../lib/queries';
 import { useDocumentTitle } from '../lib/useDocumentTitle';
 import { useFieldError } from '../lib/validation';
 import { NotFoundPage } from './NotFoundPage';
-
-const LOW_STOCK = 5;
 
 function ReviewForm({ slug }: { slug: string }) {
   const { t } = useTranslation();
@@ -178,7 +176,7 @@ export function ProductPage() {
           <p className="mt-6 text-sm font-medium">
             {product.stock === 0 ? (
               <span className="text-red-600 dark:text-red-400">{t('product.outOfStock')}</span>
-            ) : product.stock <= LOW_STOCK ? (
+            ) : product.stock <= LOW_STOCK_THRESHOLD ? (
               <span className="text-amber-700 dark:text-amber-400">
                 {t('product.lowStock', { count: product.stock })}
               </span>
