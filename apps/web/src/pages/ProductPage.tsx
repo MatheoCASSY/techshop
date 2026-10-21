@@ -94,14 +94,16 @@ function Reviews({ slug }: { slug: string }) {
         </h2>
         {isPending && <Spinner />}
         {isError && <ErrorMessage />}
-        {reviews?.length === 0 && <p className="text-gray-500">{t('reviews.empty')}</p>}
+        {reviews?.length === 0 && (
+          <p className="text-gray-500 dark:text-gray-400">{t('reviews.empty')}</p>
+        )}
         <ul className="space-y-4">
           {reviews?.map((review) => (
             <li key={review.id}>
               <Card className="p-4">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <Rating value={review.rating} />
-                  <span className="text-xs text-gray-500">
+                  <span className="text-xs text-gray-500 dark:text-gray-400">
                     {review.authorName} ·{' '}
                     <time dateTime={review.createdAt}>
                       {new Date(review.createdAt).toLocaleDateString(i18n.language)}

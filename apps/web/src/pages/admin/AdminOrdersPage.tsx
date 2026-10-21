@@ -20,7 +20,9 @@ function StatusControl({ order }: { order: Order }) {
   const number = order.id.slice(-8);
 
   if (transitions.length === 0) {
-    return <span className="text-xs text-gray-500">{t('admin.noTransition')}</span>;
+    return (
+      <span className="text-xs text-gray-500 dark:text-gray-400">{t('admin.noTransition')}</span>
+    );
   }
 
   return (
@@ -93,12 +95,14 @@ export function AdminOrdersPage() {
 
       {isPending && <Spinner />}
       {isError && <ErrorMessage onRetry={() => void refetch()} />}
-      {orders?.length === 0 && <p className="text-gray-500">{t('admin.noOrders')}</p>}
+      {orders?.length === 0 && (
+        <p className="text-gray-500 dark:text-gray-400">{t('admin.noOrders')}</p>
+      )}
 
       {orders && orders.length > 0 && (
         <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
           <table className="w-full text-left text-sm">
-            <thead className="border-b border-gray-200 text-xs uppercase text-gray-500 dark:border-gray-800">
+            <thead className="border-b border-gray-200 text-xs uppercase text-gray-500 dark:text-gray-400 dark:border-gray-800">
               <tr>
                 <th scope="col" className="px-4 py-3">
                   {t('admin.number')}
@@ -131,7 +135,9 @@ export function AdminOrdersPage() {
                   </td>
                   <td className="px-4 py-3">
                     <span className="block">{order.customer?.name}</span>
-                    <span className="block text-xs text-gray-500">{order.customer?.email}</span>
+                    <span className="block text-xs text-gray-500 dark:text-gray-400">
+                      {order.customer?.email}
+                    </span>
                   </td>
                   <td className="px-4 py-3 text-right tabular-nums">
                     <Price cents={order.totalCents} />

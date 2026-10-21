@@ -38,7 +38,7 @@ function SearchForm() {
       <button
         type="submit"
         aria-label={t('nav.search')}
-        className={`absolute inset-y-0 right-0 flex w-10 items-center justify-center text-gray-500 ${focusRing}`}
+        className={`absolute inset-y-0 right-0 flex w-10 items-center justify-center text-gray-500 dark:text-gray-400 ${focusRing}`}
       >
         <Search aria-hidden="true" className="size-4" />
       </button>

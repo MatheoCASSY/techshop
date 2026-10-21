@@ -67,7 +67,7 @@ export function AdminDashboardPage() {
         <Card>
           <h2 className="mb-4 text-lg font-semibold">{t('admin.lowStock')}</h2>
           {stats.lowStock.length === 0 ? (
-            <p className="text-sm text-gray-500">{t('admin.noLowStock')}</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">{t('admin.noLowStock')}</p>
           ) : (
             <ul className="divide-y divide-gray-200 dark:divide-gray-800">
               {stats.lowStock.map((product) => (
